@@ -117,7 +117,7 @@ function PipelineSteps({ steps, completedCount, running }: { steps: string[]; co
 
 // --- MAIN COMPONENT ---
 export default function BacklogGroomingAgent() {
-  const [currentScreen, setCurrentScreen] = useState('dashboard');
+  const [currentScreen, setCurrentScreen] = useState('jira');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [queueItems, setQueueItems] = useState(INITIAL_QUEUE);
