@@ -1,8 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin } from 'lucide-react';
 
+const auditLog = [
+  { time: 'Today, 2:34 PM', event: 'Submitted by Aryan Mehta', icon: '📋', color: 'text-[#6B6B6B]' },
+  { time: 'Today, 2:34 PM', event: 'AI Triage completed — High Priority flagged', icon: '🤖', color: 'text-[#B8963E]' },
+  { time: 'Today, 2:35 PM', event: 'Work order generated — Assigned to Raj Kumar', icon: '✅', color: 'text-[#2E7D52]' },
+  { time: 'Today, 2:35 PM', event: 'Raj Kumar acknowledged job', icon: '🔔', color: 'text-[#4A6FA5]' },
+  { time: 'Today, 2:37 PM', event: 'Technician marked En Route to Cabin 14B', icon: '🚶', color: 'text-[#D4820A]' },
+  { time: 'Today, 2:41 PM', event: 'Work started — In Progress', icon: '🔧', color: 'text-[#C1272D]' },
+];
+
 export default function S7_WorkOrder() {
   const navigate = useNavigate();
+
+  const issue = localStorage.getItem('cabin_issue') || 'AC not working';
+  const rawCat = localStorage.getItem('cabin_category');
+  const categoryLabel = rawCat ? JSON.parse(rawCat).label : 'Comfort — AC / Temperature';
 
   return (
     <div className="min-h-screen bg-[#F7F4F1]">
@@ -10,18 +23,27 @@ export default function S7_WorkOrder() {
       {/* Header Bar */}
       <div className="bg-white border-b border-[#E8E2DC] shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back</span>
-          </button>
+          <div className="flex flex-col gap-0.5">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1 text-[#6B6B6B]/50 hover:text-[#6B6B6B] text-[11px] transition-colors"
+            >
+              <span>←</span>
+              <span>Flow Overview</span>
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+          </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-[#1A1A1A] font-bold text-base">Work Order #WO-2024-0047</h1>
-              <span className="bg-[#D4820A]/15 border border-[#D4820A]/30 text-[#D4820A] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                Open
+              <span className="bg-[#4A6FA5]/15 border border-[#4A6FA5]/30 text-[#4A6FA5] text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                In Progress
               </span>
             </div>
             <p className="text-[#6B6B6B] text-xs mt-0.5">Today, 2:35 PM</p>
@@ -42,8 +64,8 @@ export default function S7_WorkOrder() {
               {[
                 ['Guest', 'Aryan Mehta'],
                 ['Cabin', '14B'],
-                ['Issue', 'AC not working'],
-                ['Category', 'Comfort — AC / Temperature'],
+                ['Issue', issue],
+                ['Category', categoryLabel],
                 ['Reported', 'Today, 2:34 PM'],
                 ['Parts Required', 'None'],
                 ['Est. Completion', '25 minutes'],
@@ -55,8 +77,8 @@ export default function S7_WorkOrder() {
               ))}
               <div>
                 <p className="text-[#6B6B6B] text-xs font-medium mb-1">Severity</p>
-                <span className="inline-flex items-center bg-[#D4820A]/15 border border-[#D4820A]/30 text-[#D4820A] text-xs font-semibold px-2.5 py-1 rounded-full">
-                  Medium
+                <span className="inline-flex items-center bg-[#C1272D]/15 border border-[#C1272D]/30 text-[#C1272D] text-xs font-semibold px-2.5 py-1 rounded-full">
+                  High
                 </span>
               </div>
             </div>
@@ -95,12 +117,38 @@ export default function S7_WorkOrder() {
             <p className="text-[#D4820A] font-bold text-sm">Complete within 25:00</p>
           </div>
           <div className="w-full bg-[#E8E2DC] rounded-full h-2">
-            <div
-              className="bg-[#2E7D52] h-2 rounded-full transition-all"
-              style={{ width: '4%' }}
-            />
+            <div className="bg-[#2E7D52] h-2 rounded-full transition-all" style={{ width: '28%' }} />
           </div>
-          <p className="text-[#6B6B6B] text-xs mt-2">Just started — 25 minutes remaining</p>
+          <p className="text-[#6B6B6B] text-xs mt-2">7 of 25 minutes elapsed — On track</p>
+        </div>
+
+        {/* Activity / Audit Log */}
+        <div className="bg-white rounded-2xl border border-[#E8E2DC] shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-[#E8E2DC]">
+            <h2 className="text-[#1A1A1A] font-semibold text-base">Activity Log</h2>
+          </div>
+          <div className="px-6 py-4">
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute left-[7px] top-2 bottom-2 w-px bg-[#E8E2DC]" />
+              <div className="space-y-4">
+                {auditLog.map((entry, idx) => (
+                  <div key={idx} className="flex items-start gap-4 relative">
+                    <div className="w-4 h-4 rounded-full bg-white border-2 border-[#E8E2DC] flex items-center justify-center flex-shrink-0 mt-0.5 z-10">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#B8963E]" />
+                    </div>
+                    <div className="flex-1 pb-1">
+                      <p className={`text-sm font-medium ${entry.color}`}>
+                        <span className="mr-1.5">{entry.icon}</span>
+                        {entry.event}
+                      </p>
+                      <p className="text-[#6B6B6B] text-xs mt-0.5">{entry.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}

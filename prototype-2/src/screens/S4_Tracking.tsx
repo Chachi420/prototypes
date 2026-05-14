@@ -8,13 +8,23 @@ export default function S4_Tracking() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [showTechCard, setShowTechCard] = useState(false);
+  const [inProgress, setInProgress] = useState(false);
+
+  const issue = localStorage.getItem('cabin_issue') || 'AC not working';
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const t1 = setTimeout(() => {
       setCurrentStep(2);
       setShowTechCard(true);
     }, 3000);
-    return () => clearTimeout(timer);
+    const t2 = setTimeout(() => {
+      setCurrentStep(3);
+      setInProgress(true);
+    }, 8000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   return (
@@ -23,6 +33,13 @@ export default function S4_Tracking() {
 
         {/* Header */}
         <div className="bg-white border-b border-[#E8E2DC] px-5 pt-12 pb-5">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1 text-[#6B6B6B]/50 hover:text-[#6B6B6B] text-[11px] mb-2 transition-colors"
+          >
+            <span>←</span>
+            <span>Flow Overview</span>
+          </button>
           <button
             onClick={() => navigate('/home')}
             className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] mb-4 transition-colors"
@@ -45,8 +62,8 @@ export default function S4_Tracking() {
             <h3 className="text-[#1A1A1A] font-semibold text-sm mb-3">Issue Summary</h3>
             <div className="space-y-2">
               {[
-                ['Category', 'Comfort — AC / Temperature'],
-                ['Issue', 'AC not working'],
+                ['Category', localStorage.getItem('cabin_category') ? JSON.parse(localStorage.getItem('cabin_category')!).label : 'Comfort — AC / Temperature'],
+                ['Issue', issue],
                 ['Cabin', '14B'],
                 ['Submitted', 'Today, 2:34 PM'],
                 ['Estimated resolution', '~25 minutes'],
@@ -69,7 +86,6 @@ export default function S4_Tracking() {
                 const isPending = idx > currentStep;
                 return (
                   <div key={step} className="flex flex-col items-center relative flex-1 min-w-0">
-                    {/* Connector line */}
                     {idx > 0 && (
                       <div
                         className={`absolute top-3.5 right-1/2 w-full h-0.5 -translate-y-1/2 ${
@@ -78,7 +94,6 @@ export default function S4_Tracking() {
                         style={{ left: '-50%', right: '50%', width: '100%' }}
                       />
                     )}
-                    {/* Circle */}
                     <div
                       className={`relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                         isCompleted
@@ -90,7 +105,6 @@ export default function S4_Tracking() {
                     >
                       {isCompleted ? '✓' : idx + 1}
                     </div>
-                    {/* Label */}
                     <p
                       className={`text-center mt-1.5 text-[10px] leading-tight px-0.5 ${
                         isCompleted
@@ -116,7 +130,7 @@ export default function S4_Tracking() {
             <span className="text-sm">~22 min remaining for resolution</span>
           </div>
 
-          {/* Technician Assigned Card (shown after 3s) */}
+          {/* Technician Assigned Card */}
           {showTechCard && (
             <div className="fade-in border border-[#2E7D52]/30 bg-[#2E7D52]/5 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -126,7 +140,11 @@ export default function S4_Tracking() {
               <div className="space-y-1">
                 <p className="text-[#1A1A1A] font-medium text-sm">Raj Kumar — HVAC Certified</p>
                 <p className="text-[#6B6B6B] text-xs">📍 Deck 5 — Currently nearby</p>
-                <p className="text-[#D4820A] text-xs font-semibold mt-1">ETA: 22 minutes</p>
+                {inProgress ? (
+                  <p className="text-[#4A6FA5] text-xs font-semibold mt-1">🔧 Work in progress</p>
+                ) : (
+                  <p className="text-[#D4820A] text-xs font-semibold mt-1">ETA: 22 minutes</p>
+                )}
               </div>
             </div>
           )}

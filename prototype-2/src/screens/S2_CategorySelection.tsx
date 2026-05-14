@@ -15,12 +15,26 @@ export default function S2_CategorySelection() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<string | null>(null);
 
+  const handleContinue = () => {
+    if (!selected) return;
+    const cat = categories.find((c) => c.id === selected)!;
+    localStorage.setItem('cabin_category', JSON.stringify(cat));
+    navigate('/describe');
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F4F1] flex justify-center">
       <div className="w-full max-w-[390px] min-h-screen bg-white shadow-xl flex flex-col">
 
         {/* Header */}
         <div className="bg-white border-b border-[#E8E2DC] px-5 pt-12 pb-5">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1 text-[#6B6B6B]/50 hover:text-[#6B6B6B] text-[11px] mb-2 transition-colors"
+          >
+            <span>←</span>
+            <span>Flow Overview</span>
+          </button>
           <button
             onClick={() => navigate('/home')}
             className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] mb-4 transition-colors"
@@ -60,7 +74,7 @@ export default function S2_CategorySelection() {
         {/* Next Button */}
         <div className="px-5 pb-8 pt-4 border-t border-[#E8E2DC]">
           <button
-            onClick={() => selected && navigate('/describe')}
+            onClick={handleContinue}
             disabled={!selected}
             className={`w-full py-4 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-200 ${
               selected

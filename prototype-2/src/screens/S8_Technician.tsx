@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, AlertTriangle } from 'lucide-react';
 
-type JobStatus = 'pending' | 'accepted' | 'inProgress' | 'resolved';
+type JobStatus = 'pending' | 'accepted' | 'enRoute' | 'inProgress' | 'resolved';
 
-// 5x4 floor plan grid — cabin 14B at row index 1, col index 2 (0-based)
 const GRID_ROWS = 5;
 const GRID_COLS = 4;
 const HIGHLIGHTED_ROW = 1;
@@ -24,10 +23,21 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+const STATUS_LABELS: Record<JobStatus, string> = {
+  pending: 'Awaiting Acceptance',
+  accepted: 'Accepted',
+  enRoute: 'En Route',
+  inProgress: 'In Progress',
+  resolved: 'Resolved',
+};
+
 export default function S8_Technician() {
   const navigate = useNavigate();
   const [jobStatus, setJobStatus] = useState<JobStatus>('pending');
   const [seconds, setSeconds] = useState(25 * 60);
+  const [resolutionNotes, setResolutionNotes] = useState('');
+
+  const issue = localStorage.getItem('cabin_issue') || 'AC not working';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -40,16 +50,44 @@ export default function S8_Technician() {
 
   const handleAction = () => {
     if (jobStatus === 'pending') setJobStatus('accepted');
-    else if (jobStatus === 'accepted') setJobStatus('inProgress');
-    else if (jobStatus === 'inProgress') navigate('/resolved');
+    else if (jobStatus === 'accepted') setJobStatus('enRoute');
+    else if (jobStatus === 'enRoute') setJobStatus('inProgress');
+    else if (jobStatus === 'inProgress') {
+      localStorage.setItem('cabin_resolution_notes', resolutionNotes || 'Replaced faulty capacitor. System tested and running normally.');
+      setJobStatus('resolved');
+      navigate('/jobcomplete');
+    }
+  };
+
+  const actionLabel: Record<JobStatus, string> = {
+    pending: 'Accept Job',
+    accepted: 'Mark En Route',
+    enRoute: 'Arrived — Mark In Progress',
+    inProgress: 'Mark Resolved',
+    resolved: 'Done',
+  };
+
+  const actionColor: Record<JobStatus, string> = {
+    pending: 'bg-[#2E7D52] hover:bg-[#256641]',
+    accepted: 'bg-[#D4820A] hover:bg-[#b8700a]',
+    enRoute: 'bg-[#4A6FA5] hover:bg-[#3d5d8f]',
+    inProgress: 'bg-[#B8963E] hover:bg-[#a07e32]',
+    resolved: 'bg-[#2E7D52] hover:bg-[#256641]',
   };
 
   return (
     <div className="min-h-screen bg-[#F7F4F1] flex justify-center">
       <div className="w-full max-w-[390px] min-h-screen bg-white shadow-xl flex flex-col">
 
-        {/* Back Button */}
+        {/* Back Buttons */}
         <div className="px-5 pt-10 pb-2">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1 text-[#6B6B6B]/50 hover:text-[#6B6B6B] text-[11px] mb-1.5 transition-colors"
+          >
+            <span>←</span>
+            <span>Flow Overview</span>
+          </button>
           <button
             onClick={() => navigate('/workorder')}
             className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
@@ -62,9 +100,14 @@ export default function S8_Technician() {
         {/* Header */}
         <div className="bg-[#1A1A1A] px-5 py-5 mx-4 rounded-2xl">
           <p className="text-white/60 text-xs font-medium">HSC Horizon · Technician View</p>
-          <div className="flex items-center gap-2 mt-1">
-            <Bell className="w-4 h-4 text-[#B8963E]" />
-            <h1 className="text-white font-bold text-base">New Job Assigned 🔔</h1>
+          <div className="flex items-center justify-between mt-1">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-[#B8963E]" />
+              <h1 className="text-white font-bold text-base">New Job Assigned 🔔</h1>
+            </div>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#B8963E]/20 text-[#B8963E] border border-[#B8963E]/30">
+              {STATUS_LABELS[jobStatus]}
+            </span>
           </div>
         </div>
 
@@ -72,8 +115,8 @@ export default function S8_Technician() {
         <div className="bg-white shadow-md rounded-2xl mx-4 mt-4 p-5 border border-[#E8E2DC]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[#1A1A1A] font-bold text-sm font-mono">#WO-2024-0047</span>
-            <span className="bg-[#D4820A]/15 border border-[#D4820A]/30 text-[#D4820A] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              Medium
+            <span className="bg-[#C1272D]/15 border border-[#C1272D]/30 text-[#C1272D] text-xs font-semibold px-2.5 py-0.5 rounded-full">
+              High Priority
             </span>
           </div>
           <div className="space-y-2 mb-4">
@@ -87,10 +130,9 @@ export default function S8_Technician() {
             </div>
             <div className="flex justify-between">
               <span className="text-[#6B6B6B] text-xs">Issue</span>
-              <span className="text-[#1A1A1A] text-xs font-semibold">AC not working</span>
+              <span className="text-[#1A1A1A] text-xs font-semibold">{issue}</span>
             </div>
           </div>
-          {/* Warning note */}
           <div className="bg-[#D4820A]/8 border border-[#D4820A]/20 rounded-xl px-3 py-2.5 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-[#D4820A] flex-shrink-0 mt-0.5" />
             <p className="text-[#D4820A] text-xs font-medium leading-relaxed">
@@ -108,15 +150,11 @@ export default function S8_Technician() {
               <span className="text-[#1A1A1A] text-xs font-semibold">Deck 5</span>
               <span className="text-[#6B6B6B] text-xs">Aft →</span>
             </div>
-            <div
-              className="grid gap-1"
-              style={{ gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)` }}
-            >
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)` }}>
               {Array.from({ length: GRID_ROWS }).map((_, rowIdx) =>
                 Array.from({ length: GRID_COLS }).map((_, colIdx) => {
                   const isHighlighted = rowIdx === HIGHLIGHTED_ROW && colIdx === HIGHLIGHTED_COL;
                   const key = `${rowIdx}-${colIdx}`;
-                  const label = cabinLabels[key] || '';
                   return (
                     <div
                       key={key}
@@ -126,7 +164,7 @@ export default function S8_Technician() {
                           : 'bg-white text-[#6B6B6B] border-[#E8E2DC]'
                       }`}
                     >
-                      {label}
+                      {cabinLabels[key] || ''}
                     </div>
                   );
                 })
@@ -147,48 +185,52 @@ export default function S8_Technician() {
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="px-4 py-4 mt-auto space-y-3">
+        {/* Status Cards */}
+        <div className="mx-4 mt-3 space-y-2">
           {jobStatus === 'accepted' && (
             <div className="slide-down bg-[#2E7D52]/10 border border-[#2E7D52]/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
               <span className="text-[#2E7D52] text-sm">✓</span>
-              <p className="text-[#2E7D52] text-sm font-semibold">Job accepted — heading to Cabin 14B</p>
+              <p className="text-[#2E7D52] text-sm font-semibold">Job accepted — preparing to head out</p>
+            </div>
+          )}
+          {jobStatus === 'enRoute' && (
+            <div className="slide-down bg-[#D4820A]/10 border border-[#D4820A]/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
+              <span className="text-[#D4820A] text-sm">🚶</span>
+              <p className="text-[#D4820A] text-sm font-semibold">En route to Cabin 14B, Deck 5</p>
             </div>
           )}
           {jobStatus === 'inProgress' && (
             <div className="slide-down bg-[#4A6FA5]/10 border border-[#4A6FA5]/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
+              <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4A6FA5] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#4A6FA5]"></span>
               </span>
-              <p className="text-[#4A6FA5] text-sm font-semibold">Job in progress...</p>
+              <p className="text-[#4A6FA5] text-sm font-semibold">Work in progress...</p>
             </div>
           )}
+        </div>
 
-          {jobStatus === 'pending' && (
-            <button
-              onClick={handleAction}
-              className="w-full bg-[#2E7D52] text-white py-4 rounded-2xl font-bold text-base shadow-md hover:bg-[#256641] transition-colors active:scale-[0.98]"
-            >
-              Accept Job
-            </button>
-          )}
-          {jobStatus === 'accepted' && (
-            <button
-              onClick={handleAction}
-              className="w-full bg-[#4A6FA5] text-white py-4 rounded-2xl font-bold text-base shadow-md hover:bg-[#3d5d8f] transition-colors active:scale-[0.98]"
-            >
-              Mark In Progress
-            </button>
-          )}
-          {jobStatus === 'inProgress' && (
-            <button
-              onClick={handleAction}
-              className="w-full bg-[#B8963E] text-white py-4 rounded-2xl font-bold text-base shadow-md hover:bg-[#a07e32] transition-colors active:scale-[0.98]"
-            >
-              Mark Resolved
-            </button>
-          )}
+        {/* Resolution Notes (shown only in inProgress state) */}
+        {jobStatus === 'inProgress' && (
+          <div className="mx-4 mt-3 slide-down">
+            <p className="text-[#1A1A1A] font-semibold text-sm mb-2">Resolution Notes</p>
+            <textarea
+              value={resolutionNotes}
+              onChange={(e) => setResolutionNotes(e.target.value)}
+              placeholder="Describe what was done to resolve the issue..."
+              className="w-full border border-[#E8E2DC] rounded-xl px-4 py-3 text-sm text-[#1A1A1A] placeholder:text-[#6B6B6B] resize-none h-20 focus:outline-none focus:border-[#B8963E]/50 focus:ring-2 focus:ring-[#B8963E]/10 transition-all"
+            />
+          </div>
+        )}
+
+        {/* Action Button */}
+        <div className="px-4 py-4 mt-auto">
+          <button
+            onClick={handleAction}
+            className={`w-full ${actionColor[jobStatus]} text-white py-4 rounded-2xl font-bold text-base shadow-md transition-colors active:scale-[0.98]`}
+          >
+            {actionLabel[jobStatus]}
+          </button>
         </div>
 
       </div>

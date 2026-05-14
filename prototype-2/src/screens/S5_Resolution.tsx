@@ -1,18 +1,38 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Gift } from 'lucide-react';
+import { Clock, Gift, ArrowLeft } from 'lucide-react';
 
 export default function S5_Resolution() {
   const navigate = useNavigate();
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
 
+  const issue = localStorage.getItem('cabin_issue') || 'AC not working';
+
   return (
     <div className="min-h-screen bg-[#F7F4F1] flex justify-center">
       <div className="w-full max-w-[390px] min-h-screen bg-white shadow-xl flex flex-col">
 
+        {/* Header Nav */}
+        <div className="px-5 pt-10 pb-0">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1 text-[#6B6B6B]/50 hover:text-[#6B6B6B] text-[11px] mb-2 transition-colors"
+          >
+            <span>←</span>
+            <span>Flow Overview</span>
+          </button>
+          <button
+            onClick={() => navigate('/home')}
+            className="flex items-center gap-2 text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Back to Home</span>
+          </button>
+        </div>
+
         {/* Top Section */}
-        <div className="flex-1 px-5 py-10 flex flex-col items-center overflow-y-auto pb-6">
+        <div className="flex-1 px-5 py-6 flex flex-col items-center overflow-y-auto pb-6">
 
           {/* Animated Checkmark */}
           <div className="w-24 h-24 bg-[#2E7D52]/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
@@ -22,7 +42,7 @@ export default function S5_Resolution() {
           {/* Title */}
           <h1 className="text-[#2E7D52] text-2xl font-bold text-center mb-3">Issue Resolved!</h1>
           <p className="text-[#6B6B6B] text-sm text-center leading-relaxed px-4 mb-3">
-            Your AC issue in Cabin 14B has been resolved by Raj Kumar. We hope you're comfortable now.
+            Your <strong>{issue}</strong> issue in Cabin 14B has been resolved by Raj Kumar. We hope you're comfortable now.
           </p>
           <div className="flex items-center gap-2 text-[#6B6B6B] text-sm mb-8">
             <Clock className="w-4 h-4" />
@@ -47,7 +67,7 @@ export default function S5_Resolution() {
             </div>
             {rating > 0 && (
               <p className="text-center text-[#6B6B6B] text-xs mt-2 fade-in">
-                {rating === 5 ? 'Excellent!' : rating === 4 ? 'Great!' : rating === 3 ? 'Good' : rating === 2 ? 'Could be better' : 'We\'ll improve'}
+                {rating === 5 ? 'Excellent!' : rating === 4 ? 'Great!' : rating === 3 ? 'Good' : rating === 2 ? 'Could be better' : "We'll improve"}
               </p>
             )}
           </div>

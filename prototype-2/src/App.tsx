@@ -9,6 +9,7 @@ import S6_AgentTriage from './screens/S6_AgentTriage';
 import S7_WorkOrder from './screens/S7_WorkOrder';
 import S8_Technician from './screens/S8_Technician';
 import S9_Dashboard from './screens/S9_Dashboard';
+import S10_JobComplete from './screens/S10_JobComplete';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
       <Route path="/workorder" element={<S7_WorkOrder />} />
       <Route path="/technician" element={<S8_Technician />} />
       <Route path="/dashboard" element={<S9_Dashboard />} />
+      <Route path="/jobcomplete" element={<S10_JobComplete />} />
     </Routes>
   );
 }
